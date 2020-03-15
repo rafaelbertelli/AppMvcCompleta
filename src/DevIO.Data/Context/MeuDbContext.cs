@@ -11,7 +11,7 @@ namespace DevIO.Data.Context
     {
         // Para criar uma migration: Add-Migration Initial -Verbose -Context MeuDbContext
         // Para criar um sql script: script-migration -Context MeuDbContext
-        // Para atualizar o banco: Update-Database -Context MeuDbContext
+        // Para atualizar o schema do banco: Update-Database -Context MeuDbContext
 
         public MeuDbContext(DbContextOptions options) : base(options)
         { }
