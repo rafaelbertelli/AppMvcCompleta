@@ -14,6 +14,13 @@ namespace DevIO.Data.Repository
         public ProdutoRepository(MeuDbContext context) : base(context) { }
 
 
+        public async Task<Produto> ObterProduto(Guid id)
+        {
+            return await Db.Produtos.AsNoTracking()
+                .FirstOrDefaultAsync(p => p.Id == id);
+        }
+
+
         public async Task<Produto> ObterProdutoPorFornecedor(Guid id)
         {
             return await Db.Produtos.AsNoTracking()
@@ -21,12 +28,14 @@ namespace DevIO.Data.Repository
                 .FirstOrDefaultAsync(p => p.Id == id);
         }
 
+
         public async Task<IEnumerable<Produto>> ObterProdutosFornecedor()
         {
             return await Db.Produtos.AsNoTracking()
                 .Include(f => f.Fornecedor)
                 .OrderBy(p => p.Nome).ToListAsync();
         }
+
 
         public async Task<IEnumerable<Produto>> ObterProdutosPorFornecedor(Guid fornecedorId)
         {
