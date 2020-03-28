@@ -9,28 +9,26 @@ using DevIO.Business.Models;
 
 namespace DevIO.App.Controllers
 {
-
-    [Route("[controller]/[action]")]
     public class FornecedoresController : BaseController
     {
-        private readonly IFornecedorRepository _context;
+        private readonly IFornecedorRepository _fornecedorRepository;
         private readonly IMapper _mapper;
 
 
         public FornecedoresController(
-            IFornecedorRepository context,
+            IFornecedorRepository fornecedorRepository,
             IMapper mapper
         )
         {
-            _context = context;
+            _fornecedorRepository = fornecedorRepository;
             _mapper = mapper;
         }
 
 
         public async Task<IActionResult> Index()
         {
-            var dbFornecedores = await _context.ObterTodos();
-            var fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(dbFornecedores);
+            List<Fornecedor> dbFornecedores = await _fornecedorRepository.ObterTodos();
+            IEnumerable<FornecedorViewModel> fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(dbFornecedores);
 
             return View(fornecedores);
         }
@@ -38,7 +36,7 @@ namespace DevIO.App.Controllers
 
         public async Task<IActionResult> Details(Guid id)
         {
-            var fornecedorViewModel = await ObterFornecedorEndereco(id);
+            FornecedorViewModel fornecedorViewModel = await ObterFornecedorEndereco(id);
 
             if (fornecedorViewModel == null)
                 return NotFound();
@@ -60,8 +58,8 @@ namespace DevIO.App.Controllers
             if (!ModelState.IsValid)
                 return View(fornecedorViewModel);
 
-            var fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
-            await _context.Adicionar(fornecedor);
+            Fornecedor fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
+            await _fornecedorRepository.Adicionar(fornecedor);
 
             return RedirectToAction(nameof(Index));
         }
@@ -69,7 +67,7 @@ namespace DevIO.App.Controllers
 
         public async Task<IActionResult> Edit(Guid id)
         {
-            var fornecedorViewModel = await ObterFornecedorProdutosEndereco(id);
+            FornecedorViewModel fornecedorViewModel = await ObterFornecedorProdutosEndereco(id);
             
             if (fornecedorViewModel == null)
                 return NotFound();
@@ -88,8 +86,8 @@ namespace DevIO.App.Controllers
             if (!ModelState.IsValid)
                 return View(fornecedorViewModel);
 
-            var fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
-            await _context.Atualizar(fornecedor);
+            Fornecedor fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
+            await _fornecedorRepository.Atualizar(fornecedor);
 
             return RedirectToAction(nameof(Index));
         }
@@ -97,7 +95,7 @@ namespace DevIO.App.Controllers
 
         public async Task<IActionResult> Delete(Guid id)
         {
-            var fornecedorViewModel = await ObterFornecedorEndereco(id);
+            FornecedorViewModel fornecedorViewModel = await ObterFornecedorEndereco(id);
             
             if (fornecedorViewModel == null)
                 return NotFound();
@@ -110,12 +108,12 @@ namespace DevIO.App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var fornecedorViewModel = await ObterFornecedorEndereco(id);
+            FornecedorViewModel fornecedorViewModel = await ObterFornecedorEndereco(id);
 
             if (fornecedorViewModel == null)
                 return NotFound();
 
-            await _context.Remover(id);
+            await _fornecedorRepository.Remover(id);
 
             return RedirectToAction(nameof(Index));
         }
@@ -123,8 +121,8 @@ namespace DevIO.App.Controllers
 
         private async Task<FornecedorViewModel> ObterFornecedorEndereco(Guid id)
         {
-            var dbFornecedorEndereco = await _context.ObterFornecedorEndereco(id);
-            var fornecedorEndereco = _mapper.Map<FornecedorViewModel>(dbFornecedorEndereco);
+            Fornecedor dbFornecedorEndereco = await _fornecedorRepository.ObterFornecedorEndereco(id);
+            FornecedorViewModel fornecedorEndereco = _mapper.Map<FornecedorViewModel>(dbFornecedorEndereco);
 
             return fornecedorEndereco;
         }
@@ -132,7 +130,7 @@ namespace DevIO.App.Controllers
 
         private async Task<FornecedorViewModel> ObterFornecedorProdutosEndereco(Guid id)
         {
-            return _mapper.Map<FornecedorViewModel>(await _context.ObterFornecedorEndereco(id));
+            return _mapper.Map<FornecedorViewModel>(await _fornecedorRepository.ObterFornecedorEndereco(id));
         }
     }
 }
