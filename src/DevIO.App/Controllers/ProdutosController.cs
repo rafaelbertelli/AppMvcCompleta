@@ -6,6 +6,8 @@ using DevIO.Business.Interfaces;
 using AutoMapper;
 using System.Collections.Generic;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Http;
+using System.IO;
 
 namespace DevIO.App.Controllers
 {
@@ -61,9 +63,22 @@ namespace DevIO.App.Controllers
             if (!ModelState.IsValid)
                 return View(produtoViewModel);
 
-            await _produtoRepository.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+            var imgPrefixo = Guid.NewGuid() + "_";
+            
+            if (! await UploadArquivo(arquivo: produtoViewModel.ImagemUpload, prefixo: imgPrefixo)) 
+                return View(produtoViewModel);
 
-            return View(produtoViewModel);
+            produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
+
+            try
+            {
+                await _produtoRepository.Adicionar(_mapper.Map<Produto>(produtoViewModel));
+                return RedirectToAction("Index");
+            }
+            catch (Exception err)
+            {
+                throw new Exception(err.Message);
+            }
         }
 
         
@@ -134,6 +149,34 @@ namespace DevIO.App.Controllers
             produto.Fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(await _fornecedorRepository.ObterTodos());
 
             return produto;
+        }
+
+
+        private async Task<bool> UploadArquivo(IFormFile arquivo, string prefixo)
+        {
+            if (arquivo.Length <= 0) return false;
+
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/userImages", prefixo + arquivo.FileName);
+
+            if (System.IO.File.Exists(path))
+            {
+                ModelState.AddModelError(key: string.Empty, errorMessage: "Já existe um arquivo com este nome");
+                return false;
+            }
+
+            try
+            {
+                using (var stream = new FileStream(path, FileMode.Create))
+                {
+                    await arquivo.CopyToAsync(stream);
+                }
+
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
         }
     }
 }
