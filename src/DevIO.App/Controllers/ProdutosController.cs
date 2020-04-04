@@ -5,9 +5,9 @@ using DevIO.App.ViewModels;
 using DevIO.Business.Interfaces;
 using AutoMapper;
 using System.Collections.Generic;
-using DevIO.Business.Models;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using DevIO.Business.Models;
 
 namespace DevIO.App.Controllers
 {
@@ -37,7 +37,7 @@ namespace DevIO.App.Controllers
         
         public async Task<IActionResult> Details(Guid id)
         {
-            Produto produtoViewModel = await _produtoRepository.ObterProduto(id);
+            ProdutoViewModel produtoViewModel = _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProduto(id));
             
             if (produtoViewModel == null)
                 return NotFound();
