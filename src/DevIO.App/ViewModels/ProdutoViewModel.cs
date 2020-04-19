@@ -4,8 +4,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DevIO.App.ViewModels
 {
@@ -32,11 +30,13 @@ namespace DevIO.App.ViewModels
 
         public string Imagem { get; set; }
 
+        [Range(0.01, double.MaxValue, ErrorMessage = "O campo {0} deve ser diferente de zero")]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
         [MoedaAttribute]
         public decimal Valor { get; set; }
 
-        [ScaffoldColumn(false)]
+        //[ScaffoldColumn(false)]
+        [DisplayName("Data de cadastro")]
         public DateTime DataCadastro { get; set; }
 
         [DisplayName("Ativo?")]
