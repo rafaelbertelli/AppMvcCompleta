@@ -37,7 +37,7 @@ namespace DevIO.App.Controllers
         
         public async Task<IActionResult> Details(Guid id)
         {
-            ProdutoViewModel produtoViewModel = _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProduto(id));
+            ProdutoViewModel produtoViewModel = _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoPorFornecedor(id));
             
             if (produtoViewModel == null)
                 return NotFound();
@@ -68,6 +68,8 @@ namespace DevIO.App.Controllers
             if (! await UploadArquivo(arquivo: produtoViewModel.ImagemUpload, prefixo: imgPrefixo)) 
                 return View(produtoViewModel);
 
+            DateTime dataCadastro = DateTime.Now;
+            produtoViewModel.DataCadastro = dataCadastro;
             produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
 
             try
@@ -137,7 +139,7 @@ namespace DevIO.App.Controllers
             if (produtoViewModel == null)
                 return NotFound();
 
-            return View(produtoViewModel);
+            return View(_mapper.Map<ProdutoViewModel>(produtoViewModel));
         }
 
         
@@ -167,7 +169,9 @@ namespace DevIO.App.Controllers
 
         private async Task<ProdutoViewModel> PopularFornecedores(ProdutoViewModel produto)
         {
-            produto.Fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(await _fornecedorRepository.ObterTodos());
+            List<Fornecedor> dbFornecedores = new List<Fornecedor>(await _fornecedorRepository.ObterFornecedoresAtivos());
+
+            produto.Fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(dbFornecedores);
 
             return produto;
         }
