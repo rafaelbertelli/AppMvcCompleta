@@ -134,7 +134,7 @@ namespace DevIO.App.Controllers
         
         public async Task<IActionResult> Delete(Guid id)
         {
-            var produtoViewModel = await _produtoRepository.ObterProduto(id);
+            var produtoViewModel = await _produtoRepository.ObterProdutoPorFornecedor(id);
 
             if (produtoViewModel == null)
                 return NotFound();
