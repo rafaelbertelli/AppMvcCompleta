@@ -7,7 +7,6 @@
 <h4>@ViewData["Title"]</h4>
 <hr />
 <div class="row">
-
     <div class="col-md-4">
         <img src="~/userImages/@Model.Imagem" alt="@Model.Imagem" style="width: 300px;" />
     </div>
@@ -55,7 +54,7 @@
 </div>
 <div class="row">
     <div class="offset-md-4 col-md-8">
-        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a> |
+        <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
         <a class="btn btn-info" href="javascript:window.history.back();">Voltar</a>
     </div>
 </div>
