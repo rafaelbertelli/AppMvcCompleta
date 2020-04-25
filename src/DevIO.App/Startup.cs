@@ -1,18 +1,10 @@
-﻿using System.Collections.Generic;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using DevIO.App.Data;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using DevIO.Data.Context;
 using AutoMapper;
-using System.Globalization;
-using Microsoft.AspNetCore.Localization;
 using DevIO.App.Configurations;
 
 namespace DevIO.App
@@ -24,7 +16,9 @@ namespace DevIO.App
             Configuration = configuration;
         }
 
+
         public IConfiguration Configuration { get; }
+
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -41,6 +35,7 @@ namespace DevIO.App
             services.ResolveDependencies();
         }
 
+
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
@@ -52,14 +47,7 @@ namespace DevIO.App
 
             app.UseAuthentication();
 
-            var defaultCulture = new CultureInfo("pt-BR");
-            var localizationOptions = new RequestLocalizationOptions
-            {
-                DefaultRequestCulture = new RequestCulture(defaultCulture),
-                SupportedCultures = new List<CultureInfo> { defaultCulture },
-                SupportedUICultures = new List<CultureInfo> { defaultCulture }
-            };
-            app.UseRequestLocalization(localizationOptions);
+            app.UseGlobalizationConfiguration();
 
             app.UseMvc(routes =>
             {
