@@ -9,13 +9,6 @@ namespace DevIO.Business.Models.Validations.Documentos
 
         public static bool Validar(string cpf)
         {
-
-            // depurar pra ver se gera a string
-            //string.Create(TamanhoCpf, "0", (chars, buf) =>
-            //{
-            //    for (int i = 0; i < chars.Length; i++) chars[i] = buf[i];
-            //});
-
             var cpfNumeros = Utils.ApenasNumeros(cpf);
 
             if (!TamanhoValido(cpfNumeros)) return false;
@@ -31,11 +24,6 @@ namespace DevIO.Business.Models.Validations.Documentos
         {
             string[] invalidNumbers =
             {
-                //string.Create(TamanhoCpf, "0", (chars, buf) => {
-                //    for (int i = 0; i < chars.Length; i++) chars[i] = buf[i];
-                //}), 
-
-                
                 "00000000000",
                 "11111111111",
                 "22222222222",

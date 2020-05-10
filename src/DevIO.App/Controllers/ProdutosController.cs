@@ -13,27 +13,30 @@ namespace DevIO.App.Controllers
 {
     public class ProdutosController : BaseController
     {
+        private readonly IMapper _mapper;
+        private readonly IProdutoService _produtoService;
         private readonly IProdutoRepository _produtoRepository;
         private readonly IFornecedorRepository _fornecedorRepository;
-        private readonly IMapper _mapper;
+        private readonly INotificador _notificador;
 
         public ProdutosController(
+            IMapper mapper,
+            IProdutoService produtoService,
             IProdutoRepository produtoRepository,
             IFornecedorRepository fornecedorRepository,
-            IMapper mapper
-        )
+            INotificador notificador
+        ) : base(notificador)
         {
+            _mapper = mapper;
+            _produtoService = produtoService;
             _produtoRepository = produtoRepository;
             _fornecedorRepository = fornecedorRepository;
-            _mapper = mapper;
         }
-
 
         public async Task<IActionResult> Index()
         {
             return View(_mapper.Map<IEnumerable<ProdutoViewModel>>(await _produtoRepository.ObterProdutosFornecedor()));
         }
-
         
         public async Task<IActionResult> Details(Guid id)
         {
@@ -53,7 +56,6 @@ namespace DevIO.App.Controllers
             return View(produtoViewModel);
         }
 
-        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProdutoViewModel produtoViewModel)
@@ -72,17 +74,13 @@ namespace DevIO.App.Controllers
             produtoViewModel.DataCadastro = dataCadastro;
             produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
 
-            try
-            {
-                await _produtoRepository.Adicionar(_mapper.Map<Produto>(produtoViewModel));
-                return RedirectToAction("Index");
-            }
-            catch (Exception err)
-            {
-                throw new Exception(err.Message);
-            }
-        }
+            await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
 
+            if (!OperacaoValida()) 
+                return View(produtoViewModel);
+
+            return RedirectToAction("Index");
+        }
         
         public async Task<IActionResult> Edit(Guid id)
         {
@@ -93,7 +91,6 @@ namespace DevIO.App.Controllers
 
             return View(produtoViewModel);
         }
-
         
         [HttpPost]
         [ValidateAntiForgeryToken]
@@ -126,11 +123,13 @@ namespace DevIO.App.Controllers
             produtoAtualizacao.Valor = produtoViewModel.Valor;
             produtoAtualizacao.Ativo = produtoViewModel.Ativo;
 
-            await _produtoRepository.Atualizar(_mapper.Map<Produto>(produtoAtualizacao));
-            
+            await _produtoService.Atualizar(_mapper.Map<Produto>(produtoAtualizacao));
+
+            if (!OperacaoValida())
+                return View(produtoViewModel);
+
             return RedirectToAction(nameof(Index));
         }
-
         
         public async Task<IActionResult> Delete(Guid id)
         {
@@ -141,7 +140,6 @@ namespace DevIO.App.Controllers
 
             return View(_mapper.Map<ProdutoViewModel>(produtoViewModel));
         }
-
         
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
@@ -152,11 +150,14 @@ namespace DevIO.App.Controllers
             if (produtoViewModel == null)
                 return NotFound();
 
-            await _produtoRepository.Remover(id);
+            await _produtoService.Remover(id);
 
+            if (!OperacaoValida())
+                return View(produtoViewModel);
+
+            TempData["Sucesso"] = "Produto excluído com sucesso";
             return RedirectToAction(nameof(Index));
         }
-
 
         private async Task<ProdutoViewModel> ObterProduto(Guid id)
         {
@@ -166,7 +167,6 @@ namespace DevIO.App.Controllers
             return produto;
         }
 
-
         private async Task<ProdutoViewModel> PopularFornecedores(ProdutoViewModel produto)
         {
             List<Fornecedor> dbFornecedores = new List<Fornecedor>(await _fornecedorRepository.ObterFornecedoresAtivos());
@@ -175,7 +175,6 @@ namespace DevIO.App.Controllers
 
             return produto;
         }
-
 
         private async Task<bool> UploadArquivo(IFormFile arquivo, string prefixo)
         {
