@@ -1,10 +1,6 @@
-﻿using DevIO.Business.Interfaces;
-using DevIO.Business.Notifications;
+﻿using System.Threading.Tasks;
+using DevIO.Business.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace DevIO.App.Extensions
 {
@@ -16,6 +12,7 @@ namespace DevIO.App.Extensions
         {
             _notificador = notificador;
         }
+
         public async Task<IViewComponentResult> InvokeAsync()
         {
             var notificacoes = await Task.FromResult(_notificador.ObterNotificacoes());

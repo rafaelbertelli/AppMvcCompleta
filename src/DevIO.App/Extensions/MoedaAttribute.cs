@@ -1,9 +1,9 @@
-﻿using Microsoft.AspNetCore.Mvc.DataAnnotations;
-using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
-using Microsoft.Extensions.Localization;
-using System;
+﻿using System;
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
+using Microsoft.AspNetCore.Mvc.DataAnnotations;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
+using Microsoft.Extensions.Localization;
 
 namespace DevIO.App.Extensions
 {
@@ -13,7 +13,7 @@ namespace DevIO.App.Extensions
         {
             try
             {
-                decimal moeda = Convert.ToDecimal(value, new CultureInfo("pr-BR"));
+                var moeda = Convert.ToDecimal(value, new CultureInfo("pt-BR"));
             }
             catch (Exception)
             {
@@ -27,14 +27,13 @@ namespace DevIO.App.Extensions
     public class MoedaAttributeAdapter : AttributeAdapterBase<MoedaAttribute>
     {
         public MoedaAttributeAdapter(MoedaAttribute attribute, IStringLocalizer stringLocalizer) : base(attribute, stringLocalizer)
-        { }
+        {
+
+        }
 
         public override void AddValidation(ClientModelValidationContext context)
         {
-            if (context == null)
-            {
-                throw new ArgumentException(nameof(context));
-            }
+            if (context == null) throw new ArgumentNullException(nameof(context));
 
             MergeAttribute(context.Attributes, "data-val", "true");
             MergeAttribute(context.Attributes, "data-val-moeda", GetErrorMessage(context));
@@ -60,6 +59,5 @@ namespace DevIO.App.Extensions
 
             return _baseProvider.GetAttributeAdapter(attribute, stringLocalizer);
         }
-        
     }
 }
