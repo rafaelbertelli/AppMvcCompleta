@@ -1,12 +1,12 @@
-﻿using DevIO.Business.Interfaces;
-using DevIO.Business.Models;
-using DevIO.Data.Context;
-using Microsoft.EntityFrameworkCore;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using DevIO.Business.Interfaces;
+using DevIO.Business.Models;
+using DevIO.Data.Context;
+using Microsoft.EntityFrameworkCore;
 
 namespace DevIO.Data.Repository
 {
@@ -26,14 +26,14 @@ namespace DevIO.Data.Repository
             return await DbSet.AsNoTracking().Where(predicate).ToListAsync();
         }
 
-        public virtual async Task<TEntity> ObeterPorId(Guid id)
+        public virtual async Task<TEntity> ObterPorId(Guid id)
         {
             return await DbSet.FindAsync(id);
         }
 
         public virtual async Task<List<TEntity>> ObterTodos()
         {
-            return await DbSet.AsNoTracking().ToListAsync();
+            return await DbSet.ToListAsync();
         }
 
         public virtual async Task Adicionar(TEntity entity)

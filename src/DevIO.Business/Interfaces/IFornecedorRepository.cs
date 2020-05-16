@@ -1,7 +1,6 @@
-﻿using DevIO.Business.Models;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Threading.Tasks;
+using DevIO.Business.Models;
 
 namespace DevIO.Business.Interfaces
 {
@@ -9,6 +8,5 @@ namespace DevIO.Business.Interfaces
     {
         Task<Fornecedor> ObterFornecedorEndereco(Guid id);
         Task<Fornecedor> ObterFornecedorProdutosEndereco(Guid id);
-        Task<IEnumerable<Fornecedor>> ObterFornecedoresAtivos();
     }
 }

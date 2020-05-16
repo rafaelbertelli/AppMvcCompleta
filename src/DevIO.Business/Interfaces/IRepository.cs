@@ -1,15 +1,15 @@
-﻿using DevIO.Business.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
+using DevIO.Business.Models;
 
 namespace DevIO.Business.Interfaces
 {
     public interface IRepository<TEntity> : IDisposable where TEntity : Entity
     {
         Task Adicionar(TEntity entity);
-        Task<TEntity> ObeterPorId(Guid id);
+        Task<TEntity> ObterPorId(Guid id);
         Task<List<TEntity>> ObterTodos();
         Task Atualizar(TEntity entity);
         Task Remover(Guid id);

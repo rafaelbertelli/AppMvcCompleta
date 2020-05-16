@@ -1,38 +1,31 @@
-﻿using DevIO.Business.Interfaces;
+﻿using System;
+using System.Threading.Tasks;
+using DevIO.Business.Interfaces;
 using DevIO.Business.Models;
 using DevIO.Data.Context;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace DevIO.Data.Repository
 {
     public class FornecedorRepository : Repository<Fornecedor>, IFornecedorRepository
     {
-        public FornecedorRepository(MeuDbContext context) : base(context) { }
-
+        public FornecedorRepository(MeuDbContext context) : base(context)
+        {
+        }
 
         public async Task<Fornecedor> ObterFornecedorEndereco(Guid id)
         {
             return await Db.Fornecedores.AsNoTracking()
-                .Include(e => e.Endereco)
-                .FirstOrDefaultAsync(f => f.Id == id);
+                .Include(c => c.Endereco)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
-
 
         public async Task<Fornecedor> ObterFornecedorProdutosEndereco(Guid id)
         {
             return await Db.Fornecedores.AsNoTracking()
-                .Include(p => p.Produtos)
-                .Include(e => e.Endereco)
-                .FirstOrDefaultAsync(f => f.Id == id);
-        }
-
-
-        public async Task<IEnumerable<Fornecedor>> ObterFornecedoresAtivos()
-        {
-            return await Buscar(p => p.Ativo == true);
+                .Include(c => c.Produtos)
+                .Include(c => c.Endereco)
+                .FirstOrDefaultAsync(c => c.Id == id);
         }
     }
 }
