@@ -1,7 +1,6 @@
 ﻿@model DevIO.App.ViewModels.FornecedorViewModel
 
-
-<div style="margin-top: 40px;">
+<div style="padding-top: 20px">
     <div>
         <hr />
         <h4>Endereço</h4>
@@ -22,10 +21,10 @@
                         @Html.DisplayNameFor(model => model.Endereco.Complemento)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Endereco.Cep)
+                        @Html.DisplayNameFor(model => model.Endereco.Bairro)
                     </th>
                     <th>
-                        @Html.DisplayNameFor(model => model.Endereco.Bairro)
+                        @Html.DisplayNameFor(model => model.Endereco.Cep)
                     </th>
                     <th>
                         @Html.DisplayNameFor(model => model.Endereco.Cidade)
@@ -36,42 +35,37 @@
                     <th></th>
                 </tr>
             </thead>
-            <tbody>
-                <tr>
-                    <td>
-                        @Html.DisplayFor(model => model.Endereco.Logradouro)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => model.Endereco.Numero)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => model.Endereco.Complemento)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => model.Endereco.Cep)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => model.Endereco.Bairro)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => model.Endereco.Cidade)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(model => model.Endereco.Estado)
-                    </td>
-                    <td class="text-right">
-                        <a asp-action="AtualizarEndereco" asp-route-id="@Model.Id" class="btn btn-info" data-modal="">
-                            <span class="fa fa-pencil-alt" title="Editar"></span>
-                        </a>
-                    </td>
-                </tr>
-            </tbody>
+
+            <tr>
+                <td>
+                    @Html.DisplayFor(model => model.Endereco.Logradouro)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Endereco.Numero)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Endereco.Complemento)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Endereco.Bairro)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Endereco.Cep)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Endereco.Cidade)
+                </td>
+                <td>
+                    @Html.DisplayFor(model => model.Endereco.Estado)
+                </td>
+                <td>
+                    <a supress-by-action="Edit,ObterEndereco" asp-action="AtualizarEndereco" asp-route-id="@Model.Id" class="btn btn-info" data-modal="">
+                        <span title="Editar" class="fa fa-pencil-alt"></span>
+                    </a>
+                </td>
+            </tr>
         </table>
     }
+
 </div>
 
-<script>
-    $(document).ready(function () {
-        AjaxModal();
-    });
-</script>

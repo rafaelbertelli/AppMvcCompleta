@@ -1,13 +1,15 @@
-﻿@using DevIO.App.Extensions;
+﻿@using DevIO.App.Extensions
 @model DevIO.App.ViewModels.FornecedorViewModel
 
 @{
-    ViewData["Title"] = "Detalhes ";
+    ViewData["Title"] = "Detalhes";
 }
 
-<h4>@ViewData["Title"]</h4>
-<hr />
+<h1>@ViewData["Title"]</h1>
+
 <div>
+    <h4>Informação somente leitura</h4>
+    <hr />
     <dl class="row">
         <dt class="col-sm-2">
             @Html.DisplayNameFor(model => model.Nome)
@@ -30,9 +32,9 @@
     </dl>
 </div>
 <div>
-    <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">Editar</a>
+    <a class="btn btn-dark"  supress-by-claim-name="Fornecedor" supress-by-claim-value="Editar" asp-action="Edit" asp-route-id="@Model.Id">Editar</a>
     <a class="btn btn-info" asp-action="Index">Voltar</a>
 </div>
-<div>
-    <partial name="_DetalhesEndereco" />
-</div>
+
+
+<partial name="_DetalhesEndereco" />
