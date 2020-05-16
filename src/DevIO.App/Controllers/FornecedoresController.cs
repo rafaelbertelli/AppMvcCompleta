@@ -1,176 +1,186 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using AutoMapper;
+using DevIO.App.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using DevIO.App.ViewModels;
 using DevIO.Business.Interfaces;
-using AutoMapper;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Authorization;
 
 namespace DevIO.App.Controllers
 {
+    [Authorize]
     public class FornecedoresController : BaseController
     {
-        private readonly IMapper _mapper;
-        private readonly IFornecedorService _fornecedorService;
         private readonly IFornecedorRepository _fornecedorRepository;
-        private readonly INotificador _notificador;
+        private readonly IFornecedorService _fornecedorService;
+        private readonly IMapper _mapper;
 
-        public FornecedoresController(
-            IMapper mapper,
-            IFornecedorService fornecedorService,
-            IFornecedorRepository fornecedorRepository,
-            INotificador notificador
-        ) : base(notificador)
+        public FornecedoresController(IFornecedorRepository fornecedorRepository, 
+                                      IMapper mapper,
+                                      IFornecedorService fornecedorService,
+                                      INotificador notificador) : base(notificador)
         {
+            _fornecedorRepository = fornecedorRepository;
             _mapper = mapper;
             _fornecedorService = fornecedorService;
-            _fornecedorRepository = fornecedorRepository;
         }
 
+        [AllowAnonymous]
+        [Route("lista-de-fornecedores")]
         public async Task<IActionResult> Index()
         {
-            List<Fornecedor> dbFornecedores = await _fornecedorRepository.ObterTodos();
-            IEnumerable<FornecedorViewModel> fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(dbFornecedores);
-
-            return View(fornecedores);
+            return View(_mapper.Map<IEnumerable<FornecedorViewModel>>(await _fornecedorRepository.ObterTodos()));
         }
 
+        [AllowAnonymous]
+        [Route("dados-do-fornecedor/{id:guid}")]
         public async Task<IActionResult> Details(Guid id)
         {
-            FornecedorViewModel fornecedorViewModel = await ObterFornecedorEndereco(id);
+            var fornecedorViewModel = await ObterFornecedorEndereco(id);
 
             if (fornecedorViewModel == null)
+            {
                 return NotFound();
+            }
 
             return View(fornecedorViewModel);
         }
 
+        [ClaimsAuthorize("Fornecedor", "Adicionar")]
+        [Route("novo-fornecedor")]
         public IActionResult Create()
         {
             return View();
         }
 
+        [ClaimsAuthorize("Fornecedor", "Adicionar")]
+        [Route("novo-fornecedor")]
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(FornecedorViewModel fornecedorViewModel)
         {
-            if (!ModelState.IsValid)
-                return View(fornecedorViewModel);
+            if (!ModelState.IsValid) return View(fornecedorViewModel);
 
-            Fornecedor fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
+            var fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
             await _fornecedorService.Adicionar(fornecedor);
 
-            if (!OperacaoValida())
-                return View(fornecedorViewModel);
+            if (!OperacaoValida()) return View(fornecedorViewModel);
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
+        [ClaimsAuthorize("Fornecedor", "Editar")]
+        [Route("editar-fornecedor/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
-            FornecedorViewModel fornecedorViewModel = await ObterFornecedorProdutosEndereco(id);
-            
+            var fornecedorViewModel = await ObterFornecedorProdutosEndereco(id);
+
             if (fornecedorViewModel == null)
+            {
                 return NotFound();
+            }
 
             return View(fornecedorViewModel);
         }
 
+        [ClaimsAuthorize("Fornecedor", "Editar")]
+        [Route("editar-fornecedor/{id:guid}")]
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, FornecedorViewModel fornecedorViewModel)
         {
-            if (id != fornecedorViewModel.Id)
-                return NotFound();
+            if (id != fornecedorViewModel.Id) return NotFound();
 
-            if (!ModelState.IsValid)
-                return View(fornecedorViewModel);
+            if (!ModelState.IsValid) return View(fornecedorViewModel);
 
-            Fornecedor fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
+            var fornecedor = _mapper.Map<Fornecedor>(fornecedorViewModel);
             await _fornecedorService.Atualizar(fornecedor);
 
-            if (!OperacaoValida())
-                return View(fornecedorViewModel);
+            if (!OperacaoValida()) return View(await ObterFornecedorProdutosEndereco(id));
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
 
+        [ClaimsAuthorize("Fornecedor", "Excluir")]
+        [Route("excluir-fornecedor/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            FornecedorViewModel fornecedorViewModel = await ObterFornecedorEndereco(id);
-            
+            var fornecedorViewModel = await ObterFornecedorEndereco(id);
+
             if (fornecedorViewModel == null)
+            {
                 return NotFound();
+            }
 
             return View(fornecedorViewModel);
         }
 
+        [ClaimsAuthorize("Fornecedor", "Excluir")]
+        [Route("excluir-fornecedor/{id:guid}")]
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
-        {
-            FornecedorViewModel fornecedorViewModel = await ObterFornecedorEndereco(id);
-
-            if (fornecedorViewModel == null)
-                return NotFound();
-
-            await _fornecedorService.Remover(id);
-
-            if (!OperacaoValida())
-                return View(fornecedorViewModel);
-
-            return RedirectToAction(nameof(Index));
-        }
-
-        public async Task<IActionResult> AtualizarEndereco(Guid id)
         {
             var fornecedor = await ObterFornecedorEndereco(id);
 
-            if (fornecedor == null)
-                return NotFound();
+            if (fornecedor == null) return NotFound();
 
-            return PartialView("_AtualizarEndereco", 
-                new FornecedorViewModel { Endereco = fornecedor.Endereco });
+            await _fornecedorService.Remover(id);
+
+            if (!OperacaoValida()) return View(fornecedor);
+
+            return RedirectToAction("Index");
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AtualizarEndereco(FornecedorViewModel fornecedorViewModel)
-        {
-            ModelState.Remove("Nome");
-            ModelState.Remove("Documento");
-
-            if (!ModelState.IsValid)
-                return PartialView("_AtualizarEndereco", fornecedorViewModel);
-
-            Endereco endereco = _mapper.Map<Endereco>(fornecedorViewModel.Endereco);
-
-            await _fornecedorService.AtualizarEndereco(endereco);
-
-            if (!OperacaoValida())
-                return PartialView("_AtualizarEndereco", fornecedorViewModel);
-
-            var url = Url.Action("ObterEndereco", "Fornecedores", new { id = fornecedorViewModel.Endereco.FornecedorId });
-
-            return Json(new { success = true, url });
-        }
-
+        [AllowAnonymous]
+        [Route("obter-endereco-fornecedor/{id:guid}")]
         public async Task<IActionResult> ObterEndereco(Guid id)
         {
             var fornecedor = await ObterFornecedorEndereco(id);
 
             if (fornecedor == null)
+            {
                 return NotFound();
+            }
 
             return PartialView("_DetalhesEndereco", fornecedor);
         }
+
+        [ClaimsAuthorize("Fornecedor", "Editar")]
+        [Route("atualizar-endereco-fornecedor/{id:guid}")]
+        public async Task<IActionResult> AtualizarEndereco(Guid id)
+        {
+            var fornecedor = await ObterFornecedorEndereco(id);
+
+            if (fornecedor == null)
+            {
+                return NotFound();
+            }
+
+            return PartialView("_AtualizarEndereco", new FornecedorViewModel { Endereco = fornecedor.Endereco });
+        }
+
+        [ClaimsAuthorize("Fornecedor", "Editar")]
+        [Route("atualizar-endereco-fornecedor/{id:guid}")]
+        [HttpPost]
+        public async Task<IActionResult> AtualizarEndereco(FornecedorViewModel fornecedorViewModel)
+        {
+            ModelState.Remove("Nome");
+            ModelState.Remove("Documento");
+
+            if (!ModelState.IsValid) return PartialView("_AtualizarEndereco", fornecedorViewModel);
+
+            await _fornecedorService.AtualizarEndereco(_mapper.Map<Endereco>(fornecedorViewModel.Endereco));
+
+            if (!OperacaoValida()) return PartialView("_AtualizarEndereco", fornecedorViewModel);
+
+            var url = Url.Action("ObterEndereco", "Fornecedores", new { id = fornecedorViewModel.Endereco.FornecedorId });
+            return Json(new { success = true, url });
+        }
+
         private async Task<FornecedorViewModel> ObterFornecedorEndereco(Guid id)
         {
-            Fornecedor dbFornecedorEndereco = await _fornecedorRepository.ObterFornecedorEndereco(id);
-            FornecedorViewModel fornecedorEndereco = _mapper.Map<FornecedorViewModel>(dbFornecedorEndereco);
-
-            return fornecedorEndereco;
+            return _mapper.Map<FornecedorViewModel>(await _fornecedorRepository.ObterFornecedorEndereco(id));
         }
 
         private async Task<FornecedorViewModel> ObterFornecedorProdutosEndereco(Guid id)

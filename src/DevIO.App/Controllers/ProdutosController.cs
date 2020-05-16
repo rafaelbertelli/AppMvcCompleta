@@ -1,119 +1,123 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading.Tasks;
+using AutoMapper;
+using DevIO.App.Extensions;
 using Microsoft.AspNetCore.Mvc;
 using DevIO.App.ViewModels;
 using DevIO.Business.Interfaces;
-using AutoMapper;
-using System.Collections.Generic;
-using Microsoft.AspNetCore.Http;
-using System.IO;
 using DevIO.Business.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Http;
 
 namespace DevIO.App.Controllers
 {
+    [Authorize]
     public class ProdutosController : BaseController
     {
-        private readonly IMapper _mapper;
-        private readonly IProdutoService _produtoService;
         private readonly IProdutoRepository _produtoRepository;
         private readonly IFornecedorRepository _fornecedorRepository;
-        private readonly INotificador _notificador;
+        private readonly IProdutoService _produtoService;
+        private readonly IMapper _mapper;
 
-        public ProdutosController(
-            IMapper mapper,
-            IProdutoService produtoService,
-            IProdutoRepository produtoRepository,
-            IFornecedorRepository fornecedorRepository,
-            INotificador notificador
-        ) : base(notificador)
+        public ProdutosController(IProdutoRepository produtoRepository, 
+                                  IFornecedorRepository fornecedorRepository, 
+                                  IMapper mapper, 
+                                  IProdutoService produtoService,
+                                  INotificador notificador) : base(notificador)
         {
-            _mapper = mapper;
-            _produtoService = produtoService;
             _produtoRepository = produtoRepository;
             _fornecedorRepository = fornecedorRepository;
+            _mapper = mapper;
+            _produtoService = produtoService;
         }
 
+        [AllowAnonymous]
+        [Route("lista-de-produtos")]
         public async Task<IActionResult> Index()
         {
-            return View(_mapper.Map<IEnumerable<ProdutoViewModel>>(await _produtoRepository.ObterProdutosFornecedor()));
+            return View(_mapper.Map<IEnumerable<ProdutoViewModel>>(await _produtoRepository.ObterProdutosFornecedores()));
         }
-        
+
+        [AllowAnonymous]
+        [Route("dados-do-produto/{id:guid}")]
         public async Task<IActionResult> Details(Guid id)
         {
-            ProdutoViewModel produtoViewModel = _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoPorFornecedor(id));
-            
+            var produtoViewModel = await ObterProduto(id);
+
             if (produtoViewModel == null)
+            {
                 return NotFound();
+            }
 
             return View(produtoViewModel);
         }
-         
 
+        [ClaimsAuthorize("Produto","Adicionar")]
+        [Route("novo-produto")]
         public async Task<IActionResult> Create()
         {
-            ProdutoViewModel produtoViewModel = await PopularFornecedores(new ProdutoViewModel());
+            var produtoViewModel = await PopularFornecedores(new ProdutoViewModel());
 
             return View(produtoViewModel);
         }
 
+        [ClaimsAuthorize("Produto", "Adicionar")]
+        [Route("novo-produto")]
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(ProdutoViewModel produtoViewModel)
         {
             produtoViewModel = await PopularFornecedores(produtoViewModel);
-
-            if (!ModelState.IsValid)
-                return View(produtoViewModel);
+            if (!ModelState.IsValid) return View(produtoViewModel);
 
             var imgPrefixo = Guid.NewGuid() + "_";
-            
-            if (! await UploadArquivo(arquivo: produtoViewModel.ImagemUpload, prefixo: imgPrefixo)) 
+            if (!await UploadArquivo(produtoViewModel.ImagemUpload, imgPrefixo))
+            {
                 return View(produtoViewModel);
+            }
 
-            DateTime dataCadastro = DateTime.Now;
-            produtoViewModel.DataCadastro = dataCadastro;
             produtoViewModel.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
-
             await _produtoService.Adicionar(_mapper.Map<Produto>(produtoViewModel));
 
-            if (!OperacaoValida()) 
-                return View(produtoViewModel);
+            if (!OperacaoValida()) return View(produtoViewModel);
 
             return RedirectToAction("Index");
         }
-        
+
+        [ClaimsAuthorize("Produto", "Editar")]
+        [Route("editar-produto/{id:guid}")]
         public async Task<IActionResult> Edit(Guid id)
         {
-            ProdutoViewModel produtoViewModel = await ObterProduto(id);
+            var produtoViewModel = await ObterProduto(id);
 
             if (produtoViewModel == null)
+            {
                 return NotFound();
+            }
 
             return View(produtoViewModel);
         }
-        
+
+        [ClaimsAuthorize("Produto", "Editar")]
+        [Route("editar-produto/{id:guid}")]
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(Guid id, ProdutoViewModel produtoViewModel)
         {
-            if (id != produtoViewModel.Id)
-                return NotFound();
+            if (id != produtoViewModel.Id) return NotFound();
 
-            ProdutoViewModel produtoAtualizacao = await ObterProduto(id);
-
-            if (!ModelState.IsValid) 
-            {
-                produtoViewModel.Fornecedor = produtoAtualizacao.Fornecedor;
-                produtoViewModel.Imagem = produtoAtualizacao.Imagem;
-                return View(produtoViewModel);
-            }
+            var produtoAtualizacao = await ObterProduto(id);
+            produtoViewModel.Fornecedor = produtoAtualizacao.Fornecedor;
+            produtoViewModel.Imagem = produtoAtualizacao.Imagem;
+            if (!ModelState.IsValid) return View(produtoViewModel);
 
             if (produtoViewModel.ImagemUpload != null)
             {
                 var imgPrefixo = Guid.NewGuid() + "_";
-
-                if (!await UploadArquivo(arquivo: produtoViewModel.ImagemUpload, prefixo: imgPrefixo))
+                if (!await UploadArquivo(produtoViewModel.ImagemUpload, imgPrefixo))
+                {
                     return View(produtoViewModel);
+                }
 
                 produtoAtualizacao.Imagem = imgPrefixo + produtoViewModel.ImagemUpload.FileName;
             }
@@ -125,82 +129,77 @@ namespace DevIO.App.Controllers
 
             await _produtoService.Atualizar(_mapper.Map<Produto>(produtoAtualizacao));
 
-            if (!OperacaoValida())
-                return View(produtoViewModel);
+            if (!OperacaoValida()) return View(produtoViewModel);
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index");
         }
-        
+
+        [ClaimsAuthorize("Produto", "Excluir")]
+        [Route("excluir-produto/{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
-            var produtoViewModel = await _produtoRepository.ObterProdutoPorFornecedor(id);
+            var produto = await ObterProduto(id);
 
-            if (produtoViewModel == null)
+            if (produto == null)
+            {
                 return NotFound();
+            }
 
-            return View(_mapper.Map<ProdutoViewModel>(produtoViewModel));
+            return View(produto);
         }
-        
+
+        [ClaimsAuthorize("Produto", "Excluir")]
+        [Route("excluir-produto/{id:guid}")]
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
         public async Task<IActionResult> DeleteConfirmed(Guid id)
         {
-            var produtoViewModel = await _produtoRepository.ObterProduto(id);
+            var produto = await ObterProduto(id);
 
-            if (produtoViewModel == null)
+            if (produto == null)
+            {
                 return NotFound();
+            }
 
             await _produtoService.Remover(id);
 
-            if (!OperacaoValida())
-                return View(produtoViewModel);
+            if (!OperacaoValida()) return View(produto);
 
-            TempData["Sucesso"] = "Produto excluído com sucesso";
-            return RedirectToAction(nameof(Index));
+            TempData["Sucesso"] = "Produto excluido com sucesso!";
+
+            return RedirectToAction("Index");
         }
 
         private async Task<ProdutoViewModel> ObterProduto(Guid id)
         {
-            ProdutoViewModel produto = _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoPorFornecedor(id));
+            var produto = _mapper.Map<ProdutoViewModel>(await _produtoRepository.ObterProdutoFornecedor(id));
             produto.Fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(await _fornecedorRepository.ObterTodos());
-
             return produto;
         }
 
         private async Task<ProdutoViewModel> PopularFornecedores(ProdutoViewModel produto)
         {
-            List<Fornecedor> dbFornecedores = new List<Fornecedor>(await _fornecedorRepository.ObterFornecedoresAtivos());
-
-            produto.Fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(dbFornecedores);
-
+            produto.Fornecedores = _mapper.Map<IEnumerable<FornecedorViewModel>>(await _fornecedorRepository.ObterTodos());
             return produto;
         }
 
-        private async Task<bool> UploadArquivo(IFormFile arquivo, string prefixo)
+        private async Task<bool> UploadArquivo(IFormFile arquivo, string imgPrefixo)
         {
             if (arquivo.Length <= 0) return false;
 
-            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/userImages", prefixo + arquivo.FileName);
+            var path = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot/imagens", imgPrefixo + arquivo.FileName);
 
             if (System.IO.File.Exists(path))
             {
-                ModelState.AddModelError(key: string.Empty, errorMessage: "Já existe um arquivo com este nome");
+                ModelState.AddModelError(string.Empty, "Já existe um arquivo com este nome!");
                 return false;
             }
 
-            try
+            using (var stream = new FileStream(path, FileMode.Create))
             {
-                using (var stream = new FileStream(path, FileMode.Create))
-                {
-                    await arquivo.CopyToAsync(stream);
-                }
+                await arquivo.CopyToAsync(stream);
+            }
 
-                return true;
-            }
-            catch (Exception)
-            {
-                return false;
-            }
+            return true;
         }
     }
 }
