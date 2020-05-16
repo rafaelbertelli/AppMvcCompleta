@@ -57,7 +57,7 @@ namespace DevIO.App
 
             app.UseAuthentication();
 
-            app.UseGlobalizationConfiguration();
+            app.UseGlobalizationConfig();
 
             app.UseMvc(routes =>
             {
