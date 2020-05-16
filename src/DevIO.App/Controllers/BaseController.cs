@@ -7,7 +7,7 @@ namespace DevIO.App.Controllers
     {
         private readonly INotificador _notificador;
 
-        public BaseController(INotificador notificador)
+        protected BaseController(INotificador notificador)
         {
             _notificador = notificador;
         }
