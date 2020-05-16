@@ -1,9 +1,9 @@
-﻿using DevIO.App.Extensions;
-using Microsoft.AspNetCore.Http;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using DevIO.App.Extensions;
+using Microsoft.AspNetCore.Http;
 
 namespace DevIO.App.ViewModels
 {
@@ -22,7 +22,7 @@ namespace DevIO.App.ViewModels
 
         [DisplayName("Descrição")]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
-        [StringLength(1000, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 50)]
+        [StringLength(1000, ErrorMessage = "O campo {0} precisa ter entre {2} e {1} caracteres", MinimumLength = 2)]
         public string Descricao { get; set; }
 
         [DisplayName("Imagem do Produto")]
@@ -30,13 +30,11 @@ namespace DevIO.App.ViewModels
 
         public string Imagem { get; set; }
 
-        [Range(0.01, double.MaxValue, ErrorMessage = "O campo {0} deve ser diferente de zero")]
+        [Moeda]
         [Required(ErrorMessage = "O campo {0} é obrigatório")]
-        [MoedaAttribute]
         public decimal Valor { get; set; }
 
-        //[ScaffoldColumn(false)]
-        [DisplayName("Data de cadastro")]
+        [ScaffoldColumn(false)]
         public DateTime DataCadastro { get; set; }
 
         [DisplayName("Ativo?")]
